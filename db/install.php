@@ -24,6 +24,11 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+/**
+ * Create Postgres specific column types and indexes
+ *
+ * @return void
+ */
 function xmldb_search_postgresfulltext_install() {
     global $DB;
 
@@ -40,4 +45,3 @@ function xmldb_search_postgresfulltext_install() {
                  ON {search_postgresfulltext_file} USING GIN (fulltextindex)");
 
 }
-

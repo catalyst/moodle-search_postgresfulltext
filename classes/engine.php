@@ -86,11 +86,11 @@ class engine extends \core_search\engine {
             $limit = \core_search\manager::MAX_RESULTS;
         }
 
-        // SELECT for the actual data with limits
+        // SELECT for the actual data with limits.
         $fullselect = "";
         $fullselectparams = array();
 
-        // SELECT to get the count of records without limits
+        // SELECT to get the count of records without limits.
         $countselect = "";
 
         $join = "";
@@ -102,7 +102,7 @@ class engine extends \core_search\engine {
         $whereparams = array();
 
         // Text highlighting SQL fragment
-        // Highlight search terms using postgres's ts_headline
+        // Highlight search terms using postgres's ts_headline.
         $highlightopen = self::HIGHLIGHT_START;
         $highlightclose = self::HIGHLIGHT_END;
 
@@ -112,12 +112,14 @@ class engine extends \core_search\engine {
         $content = "ts_headline(x.content, plainto_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS content";
         $fullselectparams[] = $data->q;
 
-        // Fulltext ranking SQL fragment
-        $rank = "GREATEST(ts_rank(t.fulltextindex, plainto_tsquery(?)), MAX(ts_rank(f.fulltextindex, plainto_tsquery(?)) )) AS rank ";
+        // Fulltext ranking SQL fragment.
+        $rank = "GREATEST(ts_rank(t.fulltextindex, plainto_tsquery(?)),
+                 MAX(ts_rank(f.fulltextindex, plainto_tsquery(?)) )) AS rank ";
+
         $fullselectparams[] = $data->q;
         $fullselectparams[] = $data->q;
 
-        // Base search query
+        // Base search query.
         $fullselect = "SELECT *, $title, $content FROM (
                             SELECT t.id, t.docid, t.itemid, t.title, t.content, t.contextid, t.areaid, t.type,
                                 t.courseid, t.owneruserid, t.modified, t.userid, t.description1,
@@ -383,7 +385,7 @@ class engine extends \core_search\engine {
 
 
     /**
-     * Index files attached to the docuemnt, ensuring the index matches the current document files.
+     * Index files attached to the document, ensuring the index matches the current document files.
      *
      * For documents that aren't known to be new, we check the index for existing files.
      * - New files we will add.
@@ -392,6 +394,7 @@ class engine extends \core_search\engine {
      * - Files that have changed will be re-indexed.
      *
      * @param document $document
+     * @param integer $docid
      */
     protected function process_document_files($document, $docid) {
         if (!$this->file_indexing_enabled()) {
@@ -480,7 +483,11 @@ class engine extends \core_search\engine {
 
         $filedoc = $document->export_file_for_engine($storedfile);
 
-        if (!$id = $DB->get_field('search_postgresfulltext_file', 'id', array('docid' => $filedoc['docid'], 'fileid' => $filedoc['fileid']))) {
+        if (!$id = $DB->get_field('search_postgresfulltext_file', 'id', array(
+                    'docid' => $filedoc['docid'],
+                    'fileid' => $filedoc['fileid']
+                ))) {
+
             $id = $DB->insert_record('search_postgresfulltext_file', $filedoc);
         }
 

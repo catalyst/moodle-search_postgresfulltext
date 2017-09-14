@@ -18,8 +18,7 @@
  * Simple db search engine tests.
  *
  * @package     search_postgresfulltext
- * @category    phpunit
- * @copyright   2016 David Monllao {@link http://www.davidmonllao.com}
+ * @copyright   2017 Catalyst IT
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,7 +32,6 @@ require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
  * Simple search engine base unit tests.
  *
  * @package     search_postgresfulltext
- * @category    phpunit
  * @copyright   2017 Catalyst IT
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
