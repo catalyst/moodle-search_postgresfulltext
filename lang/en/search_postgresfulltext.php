@@ -32,3 +32,4 @@ $string['maxindexfilekb'] = 'Maximum file size to index (kB)';
 $string['maxindexfilekb_help'] = 'Files larger than this number of kilobytes will not be included in search indexing. If set to zero, files of any size will be indexed.';
 $string['tikaurl'] = 'Tika URL';
 $string['tikaurl_help'] = 'URL to the Apache Tika Server, including the port number e.g. http://localhost:9998';
+$string['postgreswarning'] = 'It has been detected that you are not using PostgreSQL - this plugin does not work on other database types.';
