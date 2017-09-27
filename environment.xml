@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<COMPATIBILITY_MATRIX>
+    <PLUGIN name="search_postgresfulltext">
+        <CUSTOM_CHECKS>
+            <CUSTOM_CHECK file="search/engine/postgresfulltext/environmentchecks.php" function="search_postgresfulltext_check_database" level="required">
+                <FEEDBACK>
+                    <ON_ERROR message="postgreswarning" plugin="search_postgresfulltext" />
+                </FEEDBACK>
+            </CUSTOM_CHECK>
+        </CUSTOM_CHECKS>
+    </PLUGIN>
+</COMPATIBILITY_MATRIX>
