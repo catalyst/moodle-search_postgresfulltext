@@ -17,7 +17,7 @@
 /**
  * Replace the existing search engine without downtime
  *
- * @package    search
+ * @package    search_postgresfulltext
  * @copyright  2017 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,7 +25,7 @@
 define('CLI_SCRIPT', true);
 
 require(__DIR__.'/../../../../config.php');
-require_once($CFG->libdir.'/clilib.php');      // cli only functions
+require_once($CFG->libdir.'/clilib.php');      // CLI only functions.
 
 list($options, $unrecognized) = cli_get_params(array('help' => false, 'switch' => false));
 
@@ -35,8 +35,7 @@ if ($unrecognized) {
 }
 
 if ($options['help']) {
-    $help =
-"Index site using postgres even if another engine is currently used.
+    $help = "Index site using postgres even if another engine is currently used.
 
 Options:
 -h, --help            Print out this help
