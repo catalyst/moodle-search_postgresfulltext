@@ -51,6 +51,16 @@ class engine extends \core_search\engine {
      */
     protected $totalresults = null;
 
+    /**
+     * Weighting for course matches
+     */
+    const COURSE_BOOST = 3;
+
+    /**
+     * Weighting for context matches
+     */
+    const CONTEXT_BOOST = 2;
+
 
     /**
      * Return true if file indexing is supported and enabled. False otherwise.
@@ -113,11 +123,39 @@ class engine extends \core_search\engine {
         $fullselectparams[] = $data->q;
 
         // Fulltext ranking SQL fragment.
-        $rank = "GREATEST(ts_rank(t.fulltextindex, plainto_tsquery(?)),
-                 MAX(ts_rank(f.fulltextindex, plainto_tsquery(?)) )) AS rank ";
+
+        $courseboostsql = '';
+        $contextboostsql = '';
+        $courseboostparams = array();
+        $contextboostparams = array();
+
+        // If ordering by location, add in boost for the relevant course or context ids.
+        if (!empty($filters->order) && $filters->order === 'location') {
+            $coursecontext = $filters->context->get_course_context();
+            $courseboostsql = ' * CASE courseid WHEN ? THEN '. self::COURSE_BOOST.' ELSE 1 END ';
+            $courseboostparams = array($coursecontext->instanceid);
+
+            if ($filters->context->contextlevel !== CONTEXT_COURSE) {
+                // If it's a block or activity, also add a boost for the specific context id.
+                $contextboostsql = ' * CASE contextid WHEN ? THEN '. self::CONTEXT_BOOST.' ELSE 1 END ';
+                $contextboostparams = array($filters->context->id);
+            }
+        }
+
+        $rank = "(
+                    GREATEST (
+                        ts_rank(t.fulltextindex, plainto_tsquery(?)),
+                        MAX(
+                            ts_rank(f.fulltextindex, plainto_tsquery(?))
+                        )
+                    )
+                    $courseboostsql $contextboostsql
+                ) AS rank ";
 
         $fullselectparams[] = $data->q;
         $fullselectparams[] = $data->q;
+
+        $fullselectparams = array_merge($fullselectparams, $courseboostparams, $contextboostparams);
 
         // Base search query.
         $fullselect = "SELECT *, $title, $content FROM (
@@ -569,6 +607,26 @@ class engine extends \core_search\engine {
      */
     public function supports_group_filtering() {
         return true;
+    }
+
+    /**
+     * Supports for sort by location within course contexts or below.
+     *
+     * @param \context $context Context that the user requested search from
+     * @return array Array from order name => display text
+     */
+    public function get_supported_orders(\context $context) {
+        $orders = parent::get_supported_orders($context);
+
+        // If not within a course, no other kind of sorting supported.
+        $coursecontext = $context->get_course_context(false);
+        if ($coursecontext) {
+            // Within a course or activity/block, support sort by location.
+            $orders['location'] = get_string('order_location', 'search',
+                    $context->get_context_name());
+        }
+
+        return $orders;
     }
 
 }
