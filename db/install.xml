@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="search/engine/postgresfulltext/db" VERSION="20170906" COMMENT="XMLDB file for Moodle search/engine/postgresfulltext"
+<XMLDB PATH="search/engine/postgresfulltext/db" VERSION="20180404" COMMENT="XMLDB file for Moodle search/engine/postgresfulltext"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
@@ -20,6 +20,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="description1" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="description2" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -27,6 +28,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="owneruserid-contextid" UNIQUE="false" FIELDS="owneruserid, contextid" COMMENT="Query filters if no extra search filters are applied"/>
+        <INDEX NAME="groupid" UNIQUE="false" FIELDS="groupid"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="search_postgresfulltext_file" COMMENT="Default comment for the table, please edit me">

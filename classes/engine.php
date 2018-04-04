@@ -66,11 +66,11 @@ class engine extends \core_search\engine {
      *
      * @throws \core_search\engine_exception
      * @param  stdClass     $filters Containing query and filters.
-     * @param  array        $usercontexts Contexts where the user has access. True if the user can access all contexts.
+     * @param  array        $accessinfo Information about contexts the user can access
      * @param  int          $limit The maximum number of results to return.
      * @return \core_search\document[] Results or false if no results
      */
-    public function execute_query($filters, $usercontexts, $limit = 0) {
+    public function execute_query($filters, $accessinfo, $limit = 0) {
         global $DB, $USER;
 
         // Let's keep these changes internal.
@@ -139,10 +139,10 @@ class engine extends \core_search\engine {
         // Restrict it to the context where the user can access, we want this one cached.
         // If the user can access all contexts $usercontexts value is just true, we don't need to filter
         // in that case.
-        if ($usercontexts && is_array($usercontexts)) {
+        if (!$accessinfo->everything && is_array($accessinfo->usercontexts)) {
             // Join all area contexts into a single array and implode.
             $allcontexts = array();
-            foreach ($usercontexts as $areaid => $areacontexts) {
+            foreach ($accessinfo->usercontexts as $areaid => $areacontexts) {
                 if (!empty($data->areaids) && !in_array($areaid, $data->areaids)) {
                     // Skip unused areas.
                     continue;
@@ -161,6 +161,51 @@ class engine extends \core_search\engine {
             $whereands[] = 'contextid ' . $contextsql;
             $whereparams = array_merge($whereparams, $contextparams);
         }
+
+        if (!$accessinfo->everything && $accessinfo->separategroupscontexts) {
+            // Add another restriction to handle group ids. If there are any contexts using separate
+            // groups, then results in that context will not show unless you belong to the group.
+            // (Note: Access all groups is taken care of earlier, when computing these arrays.)
+
+            // This special exceptions list allows for particularly pig-headed developers to create
+            // multiple search areas within the same module, where one of them uses separate
+            // groups and the other uses visible groups. It is a little inefficient, but this should
+            // be rare.
+            $exceptionsql = '';
+            $exceptionparams = array();
+            if ($accessinfo->visiblegroupscontextsareas) {
+                foreach ($accessinfo->visiblegroupscontextsareas as $contextid => $areaids) {
+
+                    list($areaidssql, $areaidparams) = $DB->get_in_or_equal($areadids);
+
+                    $exceptionsql .= ' OR (contextid = ? AND areaid ' . $areaidsql .') ';
+
+                    $exceptionparams = array_merge($exceptionparams, $contextid, $areaidparams);
+
+                }
+            }
+
+            if ($accessinfo->usergroups) {
+                // Either the document has no groupid, or the groupid is one that the user
+                // belongs to, or the context is not one of the separate groups contexts.
+
+
+                list($groupsql, $groupparams) = $DB->get_in_or_equal($accessinfo->usergroups);
+                list($groupcontextsql, $groupcontextparams) = $DB->get_in_or_equal($accessinfo->separategroupscontexts, SQL_PARAMS_QM, null, false);
+
+                $whereands[] = '(groupid IS NULL OR groupid ' . $groupsql. ' OR contextid '. $groupcontextsql. ') '.$exceptionsql;
+                $whereparams = array_merge($whereparams, $groupparams, $groupcontextparams, $exceptionparams);
+
+            } else {
+                // Either the document has no groupid, or the context is not a restricted one.
+                list($groupcontextsql, $groupcontextparams) = $DB->get_in_or_equal($accessinfo->separategroupscontexts, SQL_PARAMS_QM, null, false);
+
+                $whereands[] = '(groupid IS NULL groupid OR contextid '. $groupcontextsql. ') '.$exceptionsql;
+                $whereparams = array_merge($whereparams, $groupcontextparams, $exceptionparams);
+
+            }
+        }
+
 
         // Course id filter.
         if (!empty($data->courseids)) {
@@ -514,6 +559,16 @@ class engine extends \core_search\engine {
             return false;
         }
 
+    }
+
+
+    /**
+     * Includes group support in the execute_query function.
+     *
+     * @return bool True
+     */
+    public function supports_group_filtering() {
+        return true;
     }
 
 }
