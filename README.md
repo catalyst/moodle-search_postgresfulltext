@@ -7,14 +7,16 @@ The following features are provided by this plugin:
 * File indexing (using Apache Tika)
 * Search result ranking
 * Search term highlighting
+* Group support (new in Moodle 3.5)
+* Ordering by course and context (new in Moodle 3.5)
 
 ## Supported Moodle Versions
 This plugin currently supports Moodle:
 
 * 3.1
-* 3.2
 * 3.3
 * 3.4
+* 3.5
 
 ## Requirements
 
