@@ -227,23 +227,23 @@ class engine extends \core_search\engine {
                 // Either the document has no groupid, or the groupid is one that the user
                 // belongs to, or the context is not one of the separate groups contexts.
 
-
                 list($groupsql, $groupparams) = $DB->get_in_or_equal($accessinfo->usergroups);
-                list($groupcontextsql, $groupcontextparams) = $DB->get_in_or_equal($accessinfo->separategroupscontexts, SQL_PARAMS_QM, null, false);
+                list($groupcontextsql, $groupcontextparams)
+                    = $DB->get_in_or_equal($accessinfo->separategroupscontexts, SQL_PARAMS_QM, null, false);
 
                 $whereands[] = '(groupid IS NULL OR groupid ' . $groupsql. ' OR contextid '. $groupcontextsql. ') '.$exceptionsql;
                 $whereparams = array_merge($whereparams, $groupparams, $groupcontextparams, $exceptionparams);
 
             } else {
                 // Either the document has no groupid, or the context is not a restricted one.
-                list($groupcontextsql, $groupcontextparams) = $DB->get_in_or_equal($accessinfo->separategroupscontexts, SQL_PARAMS_QM, null, false);
+                list($groupcontextsql, $groupcontextparams)
+                    = $DB->get_in_or_equal($accessinfo->separategroupscontexts, SQL_PARAMS_QM, null, false);
 
                 $whereands[] = '(groupid IS NULL groupid OR contextid '. $groupcontextsql. ') '.$exceptionsql;
                 $whereparams = array_merge($whereparams, $groupcontextparams, $exceptionparams);
 
             }
         }
-
 
         // Course id filter.
         if (!empty($data->courseids)) {
