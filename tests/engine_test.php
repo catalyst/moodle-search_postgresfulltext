@@ -136,7 +136,7 @@ class search_postgresfulltext_engine_testcase extends advanced_testcase {
 
         // Based on core_mocksearch\search\indexer.
         $this->assertEquals($USER->id, $results[0]->get('userid'));
-        $this->assertEquals(\context_system::instance()->id, $results[0]->get('contextid'));
+        $this->assertEquals(\context_course::instance(SITEID)->id, $results[0]->get('contextid'));
 
         // Do a test to make sure we aren't searching non-query fields, like areaid.
         $querydata->q = \core_search\manager::generate_areaid('core_mocksearch', 'mock_search_area');
