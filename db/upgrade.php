@@ -57,4 +57,6 @@ function xmldb_search_postgresfulltext_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2018040400, 'search', 'postgresfulltext');
     }
 
+    return true;
+
 }
