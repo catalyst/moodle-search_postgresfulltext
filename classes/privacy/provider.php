@@ -30,6 +30,8 @@ use core_privacy\local\request\writer;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\approved_contextlist;
+use core_privacy\local\request\userlist;
+use core_privacy\local\request\approved_userlist;
 
 /**
  * Provider for the search_postgresfulltext plugin.
@@ -39,7 +41,8 @@ use core_privacy\local\request\approved_contextlist;
  */
 class provider implements
         \core_privacy\local\metadata\provider,
-        \core_privacy\local\request\plugin\provider {
+        \core_privacy\local\request\plugin\provider,
+        \core_privacy\local\request\core_userlist_provider {
 
     /**
      * Returns meta data about this system.
@@ -102,9 +105,9 @@ class provider implements
 
         $ctxfields = \context_helper::get_preload_record_columns_sql('ctx');
         list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
-        $sql = "SELECT ssi.*, $ctxfields FROM {search_postgresfulltext} ssi
-                  JOIN {context} ctx ON ctx.id = ssi.contextid
-                 WHERE ssi.contextid $contextsql AND (ssi.userid = :userid OR ssi.owneruserid = :owneruserid)";
+        $sql = "SELECT spft.*, $ctxfields FROM {search_postgresfulltext} spft
+                  JOIN {context} ctx ON ctx.id = spft.contextid
+                 WHERE spft.contextid $contextsql AND (spft.userid = :userid OR spft.owneruserid = :owneruserid)";
         $params = ['userid' => $userid, 'owneruserid' => $userid] + $contextparams;
 
         $records = $DB->get_recordset_sql($sql, $params);
@@ -158,6 +161,50 @@ class provider implements
         list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
         $select = "contextid $contextsql AND (userid = :userid OR owneruserid = :owneruserid)";
         $params = ['userid' => $userid, 'owneruserid' => $userid] + $contextparams;
+        $DB->delete_records_select('search_postgresfulltext', $select, $params);
+    }
+
+    /**
+     * Get the list of users who have data within a context.
+     *
+     * @param   userlist    $userlist   The userlist containing the list of users who have data in this context/plugin combination.
+     */
+    public static function get_users_in_context(userlist $userlist) {
+        $context = $userlist->get_context();
+
+        $params = [
+            'contextid' => $context->id,
+        ];
+
+        $sql = "SELECT spft.userid
+                  FROM {search_postgresfulltext} spft
+                 WHERE spft.contextid = :contextid";
+
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT spft.owneruserid AS userid
+                  FROM {search_postgresfulltext} spft
+                 WHERE spft.contextid = :contextid";
+
+        $userlist->add_from_sql('userid', $sql, $params);
+    }
+
+
+    /**
+     * Delete multiple users within a single context.
+     *
+     * @param   approved_userlist       $userlist The approved context and user information to delete information for.
+     */
+    public static function delete_data_for_users(approved_userlist $userlist) {
+        global $DB;
+        $context = $userlist->get_context();
+
+        list($usersql, $userparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        list($ownersql, $ownerparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+
+        $select = "contextid = :contextid AND (userid {$usersql} OR owneruserid {$ownersql})";
+        $params = ['contextid' => $context->id] + $userparams + $ownerparams;
+
         $DB->delete_records_select('search_postgresfulltext', $select, $params);
     }
 }
