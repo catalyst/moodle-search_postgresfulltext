@@ -14,9 +14,9 @@ The following features are provided by this plugin:
 This plugin currently supports Moodle:
 
 * 3.1
-* 3.3
 * 3.4
 * 3.5
+* 3.6
 
 ## Requirements
 
