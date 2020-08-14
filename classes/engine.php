@@ -239,7 +239,7 @@ class engine extends \core_search\engine {
                 list($groupcontextsql, $groupcontextparams)
                     = $DB->get_in_or_equal($accessinfo->separategroupscontexts, SQL_PARAMS_QM, null, false);
 
-                $whereands[] = '(groupid IS NULL groupid OR contextid '. $groupcontextsql. ') '.$exceptionsql;
+                $whereands[] = '(groupid IS NULL OR contextid '. $groupcontextsql. ') '.$exceptionsql;
                 $whereparams = array_merge($whereparams, $groupcontextparams, $exceptionparams);
 
             }
