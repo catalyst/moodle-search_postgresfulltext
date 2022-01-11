@@ -97,15 +97,9 @@ class engine extends \core_search\engine {
         }
 
         // SELECT for the actual data with limits.
-        $fullselect = "";
         $fullselectparams = array();
 
-        // SELECT to get the count of records without limits.
-        $countselect = "";
 
-        $join = "";
-        $fileands = array();
-        $fileparams = array();
 
         $where = " WHERE ";
         $whereands = array();
