@@ -97,15 +97,9 @@ class engine extends \core_search\engine {
         }
 
         // SELECT for the actual data with limits.
-        $fullselect = "";
         $fullselectparams = array();
 
-        // SELECT to get the count of records without limits.
-        $countselect = "";
 
-        $join = "";
-        $joinands = array();
-        $joinparams = array();
 
         $where = " WHERE ";
         $whereands = array();
@@ -144,9 +138,9 @@ class engine extends \core_search\engine {
 
         $rank = "(
                     GREATEST (
-                        ts_rank(t.fulltextindex, plainto_tsquery(?)),
+                        ts_rank(fulltextindex, plainto_tsquery(?)),
                         MAX(
-                            ts_rank(f.fulltextindex, plainto_tsquery(?))
+                            ts_rank(filefulltextindex, plainto_tsquery(?))
                         )
                     )
                     $courseboostsql $contextboostsql
@@ -159,16 +153,25 @@ class engine extends \core_search\engine {
 
         // Base search query.
         $fullselect = "SELECT *, $title, $content FROM (
-                            SELECT t.id, t.docid, t.itemid, t.title, t.content, t.contextid, t.areaid, t.type,
-                                t.courseid, t.owneruserid, t.modified, t.userid, t.description1,
-                                t.description2, $rank, string_agg(f.fileid::text, ',') AS filematches
-                            FROM  {search_postgresfulltext} t ";
+                            SELECT id, docid, itemid, title, content, contextid, areaid, type,
+                                courseid, owneruserid, modified, userid, description1,
+                                description2, $rank, string_agg(fileid::text, ',') AS filematches ";
 
-        $countselect = "SELECT COUNT(DISTINCT t.id) FROM {search_postgresfulltext} t ";
+        $basequery = "SELECT t.*, NULL AS fileid, NULL AS filefulltextindex
+                      FROM {search_postgresfulltext} t ";
 
-        $join = "LEFT JOIN {search_postgresfulltext_file} f ON t.docid = f.docid AND ";
-        $joinands[] = " f.fulltextindex @@ plainto_tsquery(?) ";
-        $joinparams[] = $data->q;
+        $basequerycount = "SELECT t.id, t.contextid
+                           FROM {search_postgresfulltext} t ";
+
+        $filequery = "SELECT t.*, f.fileid, f.fulltextindex AS filefulltextindex
+                      FROM {search_postgresfulltext} t
+                      INNER JOIN {search_postgresfulltext_file} f ON t.docid = f.docid ";
+
+        $filequerycount = "SELECT t.id, t.contextid
+                      FROM {search_postgresfulltext} t
+                      INNER JOIN {search_postgresfulltext_file} f ON t.docid = f.docid ";
+
+        $countselect = "SELECT COUNT(DISTINCT id)";
 
         // Get results only available for the current user.
         $whereands[] = '(owneruserid = ? OR owneruserid = ?)';
@@ -177,6 +180,8 @@ class engine extends \core_search\engine {
         // Restrict it to the context where the user can access, we want this one cached.
         // If the user can access all contexts $usercontexts value is just true, we don't need to filter
         // in that case.
+        $contextsql = '';
+        $contextparams = [];
         if (!$accessinfo->everything && is_array($accessinfo->usercontexts)) {
             // Join all area contexts into a single array and implode.
             $allcontexts = array();
@@ -196,8 +201,7 @@ class engine extends \core_search\engine {
             }
 
             list($contextsql, $contextparams) = $DB->get_in_or_equal($allcontexts);
-            $whereands[] = 'contextid ' . $contextsql;
-            $whereparams = array_merge($whereparams, $contextparams);
+            $contextsql = "WHERE contextid $contextsql ";
         }
 
         if (!$accessinfo->everything && $accessinfo->separategroupscontexts) {
@@ -264,43 +268,64 @@ class engine extends \core_search\engine {
             $whereparams[] = '%'.$data->title.'%';
         }
 
+
+        $fileands = $whereands;
+        $fileparams = $whereparams;
+
         if (!empty($data->timestart)) {
             $whereands[] = 't.modified >= ?';
             $whereparams[] = $data->timestart;
 
-            $joinands[]  = 'f.modified >= ?';
-            $joinparams[] = $data->timestart;
-
+            $fileands[] = 'f.modified >= ?';
+            $fileparams[] = $data->timestart;
         }
         if (!empty($data->timeend)) {
             $whereands[] = 't.modified <= ?';
             $whereparams[] = $data->timeend;
 
-            $joinands[] = 'f.modified <= ?';
-            $joinparams[] = $data->timeend;
+            $fileands[] = 'f.modified <= ?';
+            $fileparams[] = $data->timeend;
         }
+
 
         // And finally the main query after applying all AND filters.
         if (!empty($data->q)) {
-            $whereands[] = "(t.fulltextindex @@ plainto_tsquery(?) OR f.id IS NOT NULL)";
+            $whereands[] = "t.fulltextindex @@ plainto_tsquery(?) ";
             $whereparams[] = $data->q;
+            $fileands[] = " f.fulltextindex @@ plainto_tsquery(?) ";
+            $fileparams[] = $data->q;
         }
 
-        $countquery = $countselect.
-                      $join . implode(' AND ', $joinands).
-                      $where . implode(' AND ', $whereands);
+        $countquery = "$countselect
+                        FROM (
+                            $basequerycount".
+                            $where . implode(' AND ', $whereands). "
+                            UNION
+                            $filequerycount
+                            $where ". implode(' AND ', $fileands). "
+                        ) AS s
+                        $contextsql
+                      ";
 
-        $params = array_merge($joinparams, $whereparams);
+        $params = array_merge($whereparams, $fileparams, $contextparams);
 
         $totalresults = $DB->count_records_sql($countquery, $params);
 
-        $fullquery = $fullselect.
-                     $join . implode(' AND ', $joinands).
-                     $where . implode(' AND ', $whereands). "
-                     GROUP BY t.id
+        $fullquery = "$fullselect
+                     FROM (
+                        $basequery".
+                        $where . implode(' AND ', $whereands). "
+                        UNION
+                        $filequery
+                        $where ". implode(' AND ', $fileands). "
+                     ) AS s
+                     $contextsql
+                     GROUP BY s.id, docid, itemid, title, content, contextid, areaid, type,
+                     courseid, owneruserid, modified, userid, description1,
+                     description2, fulltextindex
                      ORDER BY rank DESC) AS x";
 
-        $params = array_merge($fullselectparams, $joinparams, $whereparams);
+        $params = array_merge($fullselectparams, $whereparams, $fileparams, $contextparams);
 
         $documents = $DB->get_records_sql($fullquery, $params, 0, $limit);
 

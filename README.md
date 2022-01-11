@@ -17,6 +17,7 @@ This plugin currently supports Moodle:
 * 3.4
 * 3.5
 * 3.6
+* 3.9
 
 ## Requirements
 
