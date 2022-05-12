@@ -124,9 +124,12 @@ class search_postgresfulltext_engine_testcase extends advanced_testcase {
     public function test_search() {
         global $USER, $DB;
 
-        $this->generator->create_record();
+        $record = new \stdClass();
+        $record->contextid = \context_course::instance(SITEID)->id;
+        $this->generator->create_record($record);
         $record = new \stdClass();
         $record->title = "Special title";
+        $record->contextid = \context_course::instance(SITEID)->id;
         $this->generator->create_record($record);
 
         $this->search->index();
@@ -134,7 +137,7 @@ class search_postgresfulltext_engine_testcase extends advanced_testcase {
         $querydata = new stdClass();
         $querydata->q = 'message';
         $results = $this->search->search($querydata);
-        $this->assertCount(2, $results);
+        $this->assertCount(2, array_keys($results));
 
         // Based on core_mocksearch\search\indexer.
         $this->assertEquals($USER->id, $results[0]->get('userid'));
