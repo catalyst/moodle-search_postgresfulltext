@@ -58,6 +58,7 @@ class search_postgresfulltext_engine_testcase extends advanced_testcase {
      * @return void
      */
     public function setUp(): void {
+        $this->resetAfterTest();
         set_config('enableglobalsearch', true);
 
         // Inject search_postgresfulltext engine into the testable core search as we need to add the mock
@@ -86,9 +87,6 @@ class search_postgresfulltext_engine_testcase extends advanced_testcase {
             $this->generator->teardown();
             $this->generator = null;
         }
-        $this->search = null;
-        $this->engine = null;
-        parent::tearDown();
     }
 
     /**
