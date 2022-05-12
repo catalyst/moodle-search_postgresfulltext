@@ -24,9 +24,6 @@
 
 namespace search_postgresfulltext;
 
-defined('MOODLE_INTERNAL') || die();
-
-
 /**
  * Postgres full text search
  *
@@ -61,7 +58,6 @@ class engine extends \core_search\engine {
      */
     const CONTEXT_BOOST = 2;
 
-
     /**
      * Return true if file indexing is supported and enabled. False otherwise.
      *
@@ -85,10 +81,10 @@ class engine extends \core_search\engine {
 
         // Totara has a slightly different format for $accessinfo.
         if (!empty($accessinfo) && !isset($accessinfo->usercontexts) && is_array($accessinfo)) {
-           $accesinfo2 = $accessinfo;
-           $accessinfo = new \stdClass();
-           $accessinfo->usercontexts = $accesinfo2;
-           $accessinfo->separategroupscontexts = [];
+            $accesinfo2 = $accessinfo;
+            $accessinfo = new \stdClass();
+            $accessinfo->usercontexts = $accesinfo2;
+            $accessinfo->separategroupscontexts = [];
         }
 
         // Let's keep these changes internal.
@@ -213,7 +209,7 @@ class engine extends \core_search\engine {
         if (!is_siteadmin() && $accessinfo->separategroupscontexts) {
             // Add another restriction to handle group ids. If there are any contexts using separate
             // groups, then results in that context will not show unless you belong to the group.
-            // (Note: Access all groups is taken care of earlier, when computing these arrays.)
+            // (Note: Access all groups is taken care of earlier, when computing these arrays.).
 
             // This special exceptions list allows for particularly pig-headed developers to create
             // multiple search areas within the same module, where one of them uses separate
@@ -274,7 +270,6 @@ class engine extends \core_search\engine {
             $whereparams[] = '%'.$data->title.'%';
         }
 
-
         $fileands = $whereands;
         $fileparams = $whereparams;
 
@@ -292,7 +287,6 @@ class engine extends \core_search\engine {
             $fileands[] = 'f.modified <= ?';
             $fileparams[] = $data->timeend;
         }
-
 
         // And finally the main query after applying all AND filters.
         if (!empty($data->q)) {
