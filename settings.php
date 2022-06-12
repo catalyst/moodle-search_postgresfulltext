@@ -28,7 +28,6 @@ if ($ADMIN->fulltree) {
 
     if (!during_initial_install()) {
 
-
         $settings->add(new admin_setting_heading('search_postgresfulltext_fileindexing',
                 new lang_string('fileindexsettings', 'search_postgresfulltext'), ''));
 
@@ -43,5 +42,12 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configtext('search_postgresfulltext/maxindexfilekb',
                 new lang_string('maxindexfilekb', 'search_postgresfulltext'),
                 new lang_string('maxindexfilekb_help', 'search_postgresfulltext'), '10000', PARAM_INT));
+
+        $options = ['simple' => new lang_string('searchmethod_simple', 'search_postgresfulltext'),
+                    'websearch' => new lang_string('searchmethod_websearch', 'search_postgresfulltext')];
+
+        $settings->add(new admin_setting_configselect('search_postgresfulltext/searchmethod',
+                new lang_string('searchmethod', 'search_postgresfulltext'),
+                new lang_string('searchmethod', 'search_postgresfulltext'), 'simple', $options));
     }
 }

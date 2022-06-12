@@ -100,6 +100,12 @@ class engine extends \core_search\engine {
             $limit = \core_search\manager::MAX_RESULTS;
         }
 
+        $tsquerymethod = "plainto_tsquery";
+        if (get_config('search_postgresfulltext', 'searchmethod') == 'websearch') {
+            $tsquerymethod = "websearch_to_tsquery";
+        }
+
+
         // SELECT for the actual data with limits.
         $fullselectparams = array();
 
@@ -112,10 +118,10 @@ class engine extends \core_search\engine {
         $highlightopen = self::HIGHLIGHT_START;
         $highlightclose = self::HIGHLIGHT_END;
 
-        $title = "ts_headline(x.title, plainto_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS title";
+        $title = "ts_headline(x.title, $tsquerymethod(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS title";
         $fullselectparams[] = $data->q;
 
-        $content = "ts_headline(x.content, plainto_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS content";
+        $content = "ts_headline(x.content, $tsquerymethod(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS content";
         $fullselectparams[] = $data->q;
 
         // Fulltext ranking SQL fragment.
@@ -140,9 +146,9 @@ class engine extends \core_search\engine {
 
         $rank = "(
                     GREATEST (
-                        ts_rank(fulltextindex, plainto_tsquery(?)),
+                        ts_rank(fulltextindex, $tsquerymethod(?)),
                         MAX(
-                            ts_rank(filefulltextindex, plainto_tsquery(?))
+                            ts_rank(filefulltextindex, $tsquerymethod(?))
                         )
                     )
                     $courseboostsql $contextboostsql
@@ -290,9 +296,9 @@ class engine extends \core_search\engine {
 
         // And finally the main query after applying all AND filters.
         if (!empty($data->q)) {
-            $whereands[] = "t.fulltextindex @@ plainto_tsquery(?) ";
+            $whereands[] = "t.fulltextindex @@ $tsquerymethod(?) ";
             $whereparams[] = $data->q;
-            $fileands[] = " f.fulltextindex @@ plainto_tsquery(?) ";
+            $fileands[] = " f.fulltextindex @@ $tsquerymethod(?) ";
             $fileparams[] = $data->q;
         }
 

@@ -25,6 +25,10 @@
 $string['pluginname'] = 'Postgres Full Text';
 $string['searchinfo'] = 'Search queries';
 $string['searchinfo_help'] = 'Enter the search query.';
+$string['searchmethod'] = 'Search method';
+$string['searchmethod_help'] = 'Postgres supports a number of different searching options - use "simple" for basic search functions, or "Web search" method to allow operators like quoted text for phrase searching.';
+$string['searchmethod_simple'] = 'Simple';
+$string['searchmethod_websearch'] = 'Web search';
 $string['fileindexsettings'] = 'File indexing settings';
 $string['fileindexing'] = 'Enable file indexing';
 $string['fileindexing_help'] = 'Enable indexing of files if an Apache Tika server is available.';
