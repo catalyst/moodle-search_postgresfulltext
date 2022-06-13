@@ -29,11 +29,28 @@
  * @return environment_results|null updated results or null.
  */
 function search_postgresfulltext_check_database(environment_results $result) {
-    global $CFG;
+    global $CFG, $DB;
+
     if ($CFG->dbtype !== 'pgsql') {
         $result->setInfo('You must be using PostgreSQL.');
         $result->setStatus(false);
         return $result;
     }
-    return null;
+
+    // To use websearch function, we need PG 11 or higher.
+    $neededversion = "11";
+
+    $currentvendor = $DB->get_dbvendor();
+    $dbinfo = $DB->get_server_info();
+    $currentversion = normalize_version($dbinfo['version']);
+
+    if (version_compare($currentversion, $neededversion, '>=')) {
+        $result->setStatus(true);
+    } else {
+        $result->setStatus(false);
+    }
+    $result->setCurrentVersion($currentversion);
+    $result->setNeededVersion($neededversion);
+    $result->setInfo($currentvendor . ' (' . $dbinfo['description'] . ')');
+    return $result;
 }
