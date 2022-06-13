@@ -112,10 +112,10 @@ class engine extends \core_search\engine {
         $highlightopen = self::HIGHLIGHT_START;
         $highlightclose = self::HIGHLIGHT_END;
 
-        $title = "ts_headline(x.title, plainto_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS title";
+        $title = "ts_headline(x.title, websearch_to_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS title";
         $fullselectparams[] = $data->q;
 
-        $content = "ts_headline(x.content, plainto_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS content";
+        $content = "ts_headline(x.content, websearch_to_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS content";
         $fullselectparams[] = $data->q;
 
         // Fulltext ranking SQL fragment.
@@ -140,9 +140,9 @@ class engine extends \core_search\engine {
 
         $rank = "(
                     GREATEST (
-                        ts_rank(fulltextindex, plainto_tsquery(?)),
+                        ts_rank(fulltextindex, websearch_to_tsquery(?)),
                         MAX(
-                            ts_rank(filefulltextindex, plainto_tsquery(?))
+                            ts_rank(filefulltextindex, websearch_to_tsquery(?))
                         )
                     )
                     $courseboostsql $contextboostsql
@@ -290,9 +290,9 @@ class engine extends \core_search\engine {
 
         // And finally the main query after applying all AND filters.
         if (!empty($data->q)) {
-            $whereands[] = "t.fulltextindex @@ plainto_tsquery(?) ";
+            $whereands[] = "t.fulltextindex @@ websearch_to_tsquery(?) ";
             $whereparams[] = $data->q;
-            $fileands[] = " f.fulltextindex @@ plainto_tsquery(?) ";
+            $fileands[] = " f.fulltextindex @@ websearch_to_tsquery(?) ";
             $fileparams[] = $data->q;
         }
 
