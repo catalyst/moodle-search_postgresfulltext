@@ -53,13 +53,23 @@ $ java -jar tika-server-1.16.jar
 This will start Tika on the host. By default the Tika service is available on: `http://localhost:9998`
 
 ### Enabling File indexing support in Moodle
-Once a Tika service is available the Postgres Full-Text plugin in Moodle needs to be configured for file indexing support.<br/>
+Once a Tika service is available the Postgres Full-Text plugin in Moodle needs to be configured for file indexing support.
+
 Assuming you have already followed the basic installation steps, to enable file indexing support:
 
 1. Configure the plugin at: *Site administration > Plugins > Search > Postgres Full Text.
 2. Select the *Enable file indexing* checkbox.
 3. Set *Tika URL*, including the port number e.g. http://localhost:9998.
 4. Click the *Save Changes* button.
+
+### Configure your site security
+
+Open your site's security settings at *Site administration > General > Security > HTTP Security* and ensure that 
+
+1. The hostname **and** IP address of your Tika server are not shown in the *cURL blocked hosts list*.
+2. The port number of your Tika server is in the *cURL allowed ports list*. 
+
+If your Tika instance is running at `http://localhost:9998`, you have to remove both `localhost` and `127.0.0.1` from the *cURL blocked hosts list*, and add `9998` to the *cURL allowed ports list*. 
 
 ### What is Tika
 From the [Apache Tika](https://tika.apache.org/) website:
