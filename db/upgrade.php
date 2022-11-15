@@ -55,6 +55,21 @@ function xmldb_search_postgresfulltext_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2018040400, 'search', 'postgresfulltext');
     }
 
+    if ($oldversion < 2025052500) {
+
+        $DB->execute("CREATE EXTENSION IF NOT EXISTS unaccent");
+
+        $DB->execute("DROP TEXT SEARCH CONFIGURATION IF EXISTS en");
+
+        $DB->execute("CREATE TEXT SEARCH CONFIGURATION en ( COPY = english)");
+
+        $DB->execute("ALTER TEXT SEARCH CONFIGURATION en
+                    ALTER MAPPING FOR hword, hword_part, word WITH unaccent, english_stem");
+
+        // Postgresfulltext savepoint reached.
+        upgrade_plugin_savepoint(true, 2025052500, 'search', 'postgresfulltext');
+    }
+
     return true;
 
 }

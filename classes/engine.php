@@ -112,10 +112,13 @@ class engine extends \core_search\engine {
         $highlightopen = self::HIGHLIGHT_START;
         $highlightclose = self::HIGHLIGHT_END;
 
-        $title = "ts_headline(x.title, websearch_to_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS title";
+        // Define dictionary to be used
+        $dict = "'en'";
+
+        $title = "ts_headline(" . $dict . ", x.title, websearch_to_tsquery(" . $dict . ", ?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS title";
         $fullselectparams[] = $data->q;
 
-        $content = "ts_headline(x.content, websearch_to_tsquery(?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS content";
+        $content = "ts_headline(" . $dict . ", x.content, websearch_to_tsquery(" . $dict . ", ?), 'StartSel=$highlightopen, StopSel=$highlightclose') AS content";
         $fullselectparams[] = $data->q;
 
         // Fulltext ranking SQL fragment.
@@ -140,9 +143,9 @@ class engine extends \core_search\engine {
 
         $rank = "(
                     GREATEST (
-                        ts_rank(fulltextindex, websearch_to_tsquery(?)),
+                        ts_rank(fulltextindex, websearch_to_tsquery(" . $dict . ", ?)),
                         MAX(
-                            ts_rank(filefulltextindex, websearch_to_tsquery(?))
+                            ts_rank(filefulltextindex, websearch_to_tsquery(" . $dict . ", ?))
                         )
                     )
                     $courseboostsql $contextboostsql
@@ -290,9 +293,9 @@ class engine extends \core_search\engine {
 
         // And finally the main query after applying all AND filters.
         if (!empty($data->q)) {
-            $whereands[] = "t.fulltextindex @@ websearch_to_tsquery(?) ";
+            $whereands[] = "t.fulltextindex @@ websearch_to_tsquery(" . $dict . ", ?) ";
             $whereparams[] = $data->q;
-            $fileands[] = " f.fulltextindex @@ websearch_to_tsquery(?) ";
+            $fileands[] = " f.fulltextindex @@ websearch_to_tsquery(" . $dict . ", ?) ";
             $fileparams[] = $data->q;
         }
 
@@ -385,6 +388,9 @@ class engine extends \core_search\engine {
     public function add_document($document, $fileindexing = false) {
         global $DB;
 
+        // Define dictionary to be used
+        $dict = "'en'";
+
         $doc = (object)$document->export_for_engine();
 
         $doc->docid = $doc->id;
@@ -400,10 +406,10 @@ class engine extends \core_search\engine {
             }
 
             $sql = "UPDATE {search_postgresfulltext} SET fulltextindex =
-                        setweight(to_tsvector(coalesce(title, '')), 'A') ||
-                        setweight(to_tsvector(coalesce(content, '')), 'B') ||
-                        setweight(to_tsvector(coalesce(description1, '')), 'C') ||
-                        setweight(to_tsvector(coalesce(description2, '')), 'C')
+                        setweight(to_tsvector(" . $dict . ", coalesce(title, '')), 'A') ||
+                        setweight(to_tsvector(" . $dict . ", coalesce(content, '')), 'B') ||
+                        setweight(to_tsvector(" . $dict . ", coalesce(description1, '')), 'C') ||
+                        setweight(to_tsvector(" . $dict . ", coalesce(description2, '')), 'C')
                     WHERE id = ? ";
 
             $DB->execute($sql, array($id));
@@ -584,6 +590,9 @@ class engine extends \core_search\engine {
     protected function add_stored_file($document, $storedfile) {
         global $DB, $CFG;
 
+        // Define dictionary to be used
+        $dict = "'en'";
+
         if ($storedfile->get_filesize() > ($this->config->maxindexfilekb * 1024) || $this->config->maxindexfilekb == 0 ) {
             echo "Skipping ".$storedfile->get_filename()." larger than {$this->config->maxindexfilekb} KB\n";
             return true;
@@ -602,7 +611,7 @@ class engine extends \core_search\engine {
         try {
             $sql = "UPDATE {search_postgresfulltext_file}
                     SET title = :title, fileid = :fileid, modified = :modified, filecontenthash = :filecontenthash,
-                        fulltextindex = setweight(to_tsvector(:textdoc), 'B') || setweight(to_tsvector(:texttitle), 'A')
+                        fulltextindex = setweight(to_tsvector(" . $dict . ", :textdoc), 'B') || setweight(to_tsvector(" . $dict . ", :texttitle), 'A')
                     WHERE id = :id";
 
             $params = array(
