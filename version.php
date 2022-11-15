@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2018051601;
-$plugin->requires = 2017051509;
+$plugin->version = 2025052500;
+$plugin->requires = 2025012300;
 $plugin->component = 'search_postgresfulltext';
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '1.2 (Build 2018122700)';
