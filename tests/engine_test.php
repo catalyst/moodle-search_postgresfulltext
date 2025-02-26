@@ -89,6 +89,7 @@ class search_postgresfulltext_engine_test extends \core_phpunit\testcase {
         }
         $this->search = null;
         $this->engine = null;
+        parent::tearDown();
     }
 
     /**
