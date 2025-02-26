@@ -35,7 +35,7 @@ require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
  * @copyright   2017 Catalyst IT
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class search_postgresfulltext_engine_testcase extends \core_phpunit\testcase {
+class search_postgresfulltext_engine_test extends \core_phpunit\testcase {
 
     /**
      * @var \core_search::manager
@@ -89,6 +89,7 @@ class search_postgresfulltext_engine_testcase extends \core_phpunit\testcase {
         }
         $this->search = null;
         $this->engine = null;
+        parent::tearDown();
     }
 
     /**
