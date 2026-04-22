@@ -10,19 +10,19 @@ The following features are provided by this plugin:
 * Group support (new in Moodle 3.5)
 * Ordering by course and context (new in Moodle 3.5)
 
-## Supported Moodle Versions
-This plugin currently supports Moodle:
+## Supported Versions
 
-* 3.1
-* 3.4
-* 3.5
-* 3.6
-* 3.9
-* 4.0
+| Moodle version    | Branch             |
+| ----------------- | ------------------ |
+| Moodle 3.9 to 5.0 | `main`             |
+| Totara up to 18   | `main`             |
+| Totara 19         | `TOTARA_19_STABLE` |
 
 ## Requirements
 
 Moodle must use Postgres as its database. MySQL and other databases types are not supported by this plugin.
+
+Minimum Postgres version: 13.
 
 
 ## Installation
@@ -64,12 +64,12 @@ Assuming you have already followed the basic installation steps, to enable file 
 
 ### Configure your site security
 
-Open your site's security settings at *Site administration > General > Security > HTTP Security* and ensure that 
+Open your site's security settings at *Site administration > General > Security > HTTP Security* and ensure that
 
 1. The hostname **and** IP address of your Tika server are not shown in the *cURL blocked hosts list*.
-2. The port number of your Tika server is in the *cURL allowed ports list*. 
+2. The port number of your Tika server is in the *cURL allowed ports list*.
 
-If your Tika instance is running at `http://localhost:9998`, you have to remove both `localhost` and `127.0.0.1` from the *cURL blocked hosts list*, and add `9998` to the *cURL allowed ports list*. 
+If your Tika instance is running at `http://localhost:9998`, you have to remove both `localhost` and `127.0.0.1` from the *cURL blocked hosts list*, and add `9998` to the *cURL allowed ports list*.
 
 ### What is Tika
 From the [Apache Tika](https://tika.apache.org/) website:

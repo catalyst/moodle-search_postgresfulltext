@@ -37,8 +37,8 @@ function search_postgresfulltext_check_database(environment_results $result) {
         return $result;
     }
 
-    // To use websearch function, we need PG 11 or higher.
-    $neededversion = "11";
+    // To configure unaccented search with the upgrade script, we need PG 13 or higher.
+    $neededversion = "13";
 
     $currentvendor = $DB->get_dbvendor();
     $dbinfo = $DB->get_server_info();
