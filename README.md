@@ -10,15 +10,14 @@ The following features are provided by this plugin:
 * Group support (new in Moodle 3.5)
 * Ordering by course and context (new in Moodle 3.5)
 
-## Supported Moodle Versions
-This plugin currently supports Moodle:
+## Supported Versions
 
-* 3.1
-* 3.4
-* 3.5
-* 3.6
-* 3.9
-* 4.0
+| Moodle version    | Branch             |
+| ----------------- | ------------------ |
+| Moodle 4.4+       | `MOODLE_404_STABLE`|
+| Moodle 3.1 to 4.3 | `main`             |
+| Totara 19         | `TOTARA_19_STABLE` |
+| Totara up to 18   | `main`             |
 
 ## Requirements
 
